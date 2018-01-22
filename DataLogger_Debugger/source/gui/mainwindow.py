@@ -6,12 +6,9 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtGui import QColor
+from PyQt5 import QtCore, QtWidgets, QtGui
+import source.constants
 import os
-import time
-
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
     """
@@ -19,11 +16,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     """
 
     filenames = []
-    colors = {
-        'red': QColor('red'), 'green': QColor('green'),
-        'yellow': QColor('yellow'), 'orange': QColor('orange'),
-        'black': QColor('black')
-    }
 
     def __init__(self):
         """
@@ -43,7 +35,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.browseButton = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
         self.cancelButton = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
         self.parseButton = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
-
 
         self.setupUi(MainWindow=self)
         self.browseButton.clicked.connect(self.browseFileSystem)
@@ -107,7 +98,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         """
         open a new window to browse the file file system for log files
         """
-        self.filenames = list(QFileDialog.getOpenFileNames(parent=None, caption='Test Dialog',
+        self.filenames = list(QtWidgets.QFileDialog.getOpenFileNames(parent=None, caption='Test Dialog',
                                                       directory=os.getcwd(), filter="Text files (*.log)"))
 
         # only save the file name info
@@ -115,11 +106,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         if len(self.filenames) > 0:
             for file in self.filenames:
-                self.writeToOutputBox(message=file, color='green')
+                self.writeToOutputBox(message=file, color=source.constants.GREEN)
             self.parseButton.setEnabled(True)
             self.cancelButton.setEnabled(True)
         else:
-            self.writeToOutputBox(message='No files selected', color='red')
+            self.writeToOutputBox(message='No files selected', color=source.constants.RED)
 
     def openFiles(self):
         """
@@ -133,9 +124,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             (prefix, sep, suffix) = str(file).rpartition('.')
             csvFile = prefix + '.csv'
             self.writeToOutputBox(message='\nReading file :')
-            self.writeToOutputBox(message=file, color='orange')
+            self.writeToOutputBox(message=file, color=source.constants.ORANGE)
             self.writeToOutputBox(message='Writing to :')
-            self.writeToOutputBox(message=csvFile, color='orange')
+            self.writeToOutputBox(message=csvFile, color=source.constants.ORANGE)
 
             with open(file, 'r') as inFile, open(csvFile, 'w') as outFile:
                 self.parseFiles(inFile=inFile, outFile=outFile)
@@ -148,7 +139,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.parseButton.setEnabled(False)
         self.cancelButton.setEnabled(False)
-        self.writeToOutputBox(message='\nDone', color='green')
+        self.writeToOutputBox(message='\nDone', color=source.constants.GREEN)
 
     def parseFiles(self, inFile, outFile):
         """
@@ -182,11 +173,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.parseButton.setEnabled(False)
         self.writeToOutputBox(message="'Browse Files' to select log files")
 
-    def writeToOutputBox(self, message:str, color:str = 'black'):
+    def writeToOutputBox(self, message:str, color:QtGui.QColor = QtGui.QColor('black')):
         """
         writes to the outputBox
         :param message: message to print
         :param color: color of the text
         """
-        self.outputBox.setTextColor(self.colors.get(color))
+        self.outputBox.setTextColor(color)
         self.outputBox.append(message)

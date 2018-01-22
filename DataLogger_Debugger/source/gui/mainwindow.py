@@ -10,6 +10,7 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtGui import QColor
 import os
+import time
 
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
@@ -40,11 +41,17 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.progressBarTotal = QtWidgets.QProgressBar(self.verticalLayoutWidget_3)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.browseButton = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
+        self.cancelButton = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
         self.parseButton = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
+
 
         self.setupUi(MainWindow=self)
         self.browseButton.clicked.connect(self.browseFileSystem)
         self.parseButton.clicked.connect(self.openFiles)
+        self.cancelButton.clicked.connect(self.resetAllFields)
+        self.cancelButton.setEnabled(False)
+        self.parseButton.setEnabled(False)
+        self.writeToOutputBox(message="'Browse Files' to select log files")
 
 
     def setupUi(self, MainWindow):
@@ -72,6 +79,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.browseButton.setObjectName("browseButton")
         self.horizontalLayout.addWidget(self.browseButton)
+        self.cancelButton.setObjectName("cancelButton")
+        self.cancelButton.setText("Cancel")
+        self.horizontalLayout.addWidget(self.cancelButton)
         self.parseButton.setObjectName("parseButton")
         self.horizontalLayout.addWidget(self.parseButton)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
@@ -80,8 +90,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-        self.parseButton.setEnabled(False)
-        self.writeToOutputBox(message="'Browse Files' to select log files")
+
 
     def retranslateUi(self, MainWindow):
         """
@@ -108,6 +117,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             for file in self.filenames:
                 self.writeToOutputBox(message=file, color='green')
             self.parseButton.setEnabled(True)
+            self.cancelButton.setEnabled(True)
         else:
             self.writeToOutputBox(message='No files selected', color='red')
 
@@ -130,14 +140,15 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             with open(file, 'r') as inFile, open(csvFile, 'w') as outFile:
                 self.parseFiles(inFile=inFile, outFile=outFile)
 
-            count = count + 1
+            count += 1
             currentPercentage = int(count / totalCount * 100)
             if oldPercentage + 1 < currentPercentage:
                 oldPercentage = currentPercentage
                 self.updateProgressBar(percentage=currentPercentage)
 
+        self.parseButton.setEnabled(False)
+        self.cancelButton.setEnabled(False)
         self.writeToOutputBox(message='\nDone', color='green')
-
 
     def parseFiles(self, inFile, outFile):
         """
@@ -155,7 +166,21 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             outFile.write(data[0] + ',' + data[1] + ',' + data[2] + '\n')
 
     def updateProgressBar(self, percentage:int):
+        """
+        sets the value of the progress bar
+        :param percentage: percentage completed of the current task
+        """
         self.progressBarTotal.setValue(percentage)
+
+    def resetAllFields(self):
+        """
+        reset the window's settings
+        """
+        self.filenames = []
+        self.outputBox.clear()
+        self.cancelButton.setEnabled(False)
+        self.parseButton.setEnabled(False)
+        self.writeToOutputBox(message="'Browse Files' to select log files")
 
     def writeToOutputBox(self, message:str, color:str = 'black'):
         """
